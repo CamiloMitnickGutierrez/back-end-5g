@@ -34,7 +34,7 @@ exports.enviarTicketEmail = async (req, res) => {
         const { data, error } = await resend.emails.send({
             from: 'Evento Confirmado <onboarding@resend.dev>',
             to: [email],
-            subject: `🎟️ ¡Aquí tienes tu entrada, ${nombre}!`,
+            subject: `¡Aquí tienes tu entrada, ${nombre}!`,
             attachments: [
                 {
                     filename: 'Ticket-QR.png',
