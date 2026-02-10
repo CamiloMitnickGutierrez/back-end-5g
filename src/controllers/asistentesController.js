@@ -2,8 +2,7 @@ const Asistente = require('../models/Asistentes');
 const QRCode = require('qrcode');
 const { Resend } = require('resend');
 
-// Eliminamos la instancia global para evitar errores al arranque
-// const resend = new Resend(process.env.RESEND_API_KEY); 
+//  NOTA: Se eliminó la instancia global de Resend para evitar el error "Missing API key" al iniciar el servidor en Azure.
 
 exports.registrarAsistente = async (req, res) => {
     try {
@@ -29,14 +28,15 @@ exports.enviarTicketEmail = async (req, res) => {
     const { email, nombre, qrUrl } = req.body;
 
     try {
-        // Validamos la API Key justo antes de usarla
+        //  Inicialización protegida: solo ocurre cuando se llama a la función
         if (!process.env.RESEND_API_KEY) {
-            throw new Error("La variable RESEND_API_KEY no está configurada en el servidor.");
+            console.error(" ERROR: La variable RESEND_API_KEY no está definida en Azure.");
+            return res.status(500).json({ success: false, message: "Error de configuración de correo en el servidor." });
         }
 
         const resend = new Resend(process.env.RESEND_API_KEY);
         
-        // Limpiamos el base64
+        // Limpiamos el base64 del QR
         const base64Content = qrUrl.split(',')[1];
 
         const { data, error } = await resend.emails.send({
@@ -72,22 +72,21 @@ exports.enviarTicketEmail = async (req, res) => {
         });
 
         if (error) {
-            console.error("Error de Resend:", error);
+            console.error("Error detallado de Resend:", error);
             return res.status(400).json({ success: false, error });
         }
 
-        res.status(200).json({ success: true, message: "Correo enviado" });
+        res.status(200).json({ success: true, message: "Correo enviado correctamente" });
         
     } catch (error) {
-        console.error("Error enviando email:", error.message);
-        res.status(500).json({ success: false, message: "Error interno al enviar correo" });
+        console.error("Error interno en enviarTicketEmail:", error.message);
+        res.status(500).json({ success: false, message: "Error interno al procesar el envío" });
     }
 };
 
 const getFechaLocal = () => {
     const d = new Date();
-    // Ajustado para retornar YYYY-MM-DD
-    return d.toLocaleDateString('en-CA'); 
+    return d.toLocaleDateString('en-CA'); // Retorna YYYY-MM-DD
 };
 
 exports.validarAsistente = async (req, res) => {
@@ -95,14 +94,12 @@ exports.validarAsistente = async (req, res) => {
     const fechaHoy = getFechaLocal();
 
     try {
-        // 1. Buscar al asistente por su ID
         const asistente = await Asistente.findById(id);
 
         if (!asistente) {
             return res.status(404).json({ message: "Error: El código QR no es válido o no existe." });
         }
 
-        // 2. Verificar si ya registró asistencia el día de HOY
         const yaAsistioHoy = asistente.asistencias.some(asist => asist.fecha === fechaHoy);
 
         if (yaAsistioHoy) {
@@ -114,7 +111,6 @@ exports.validarAsistente = async (req, res) => {
             });
         }
 
-        // 3. Registrar nueva asistencia
         const nuevaAsistencia = {
             fecha: fechaHoy,
             horaExacta: new Date()
@@ -123,7 +119,6 @@ exports.validarAsistente = async (req, res) => {
         asistente.asistencias.push(nuevaAsistencia);
         await asistente.save();
 
-        // 4. Calcular cuántos han entrado HOY
         const conteoHoy = await Asistente.countDocuments({ "asistencias.fecha": fechaHoy });
 
         res.status(200).json({ 
