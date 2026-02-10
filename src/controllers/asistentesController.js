@@ -2,7 +2,8 @@ const Asistente = require('../models/Asistentes');
 const QRCode = require('qrcode');
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Eliminamos la instancia global para evitar errores al arranque
+// const resend = new Resend(process.env.RESEND_API_KEY); 
 
 exports.registrarAsistente = async (req, res) => {
     try {
@@ -28,6 +29,13 @@ exports.enviarTicketEmail = async (req, res) => {
     const { email, nombre, qrUrl } = req.body;
 
     try {
+        // Validamos la API Key justo antes de usarla
+        if (!process.env.RESEND_API_KEY) {
+            throw new Error("La variable RESEND_API_KEY no está configurada en el servidor.");
+        }
+
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
         // Limpiamos el base64
         const base64Content = qrUrl.split(',')[1];
 
@@ -63,19 +71,23 @@ exports.enviarTicketEmail = async (req, res) => {
             `,
         });
 
-        if (error) return res.status(400).json({ success: false, error });
+        if (error) {
+            console.error("Error de Resend:", error);
+            return res.status(400).json({ success: false, error });
+        }
 
         res.status(200).json({ success: true, message: "Correo enviado" });
         
     } catch (error) {
-        res.status(500).json({ success: false, message: "Error interno" });
+        console.error("Error enviando email:", error.message);
+        res.status(500).json({ success: false, message: "Error interno al enviar correo" });
     }
 };
 
 const getFechaLocal = () => {
     const d = new Date();
-    // Ajuste a tu zona horaria (ejemplo: 'es-CO' para Colombia o 'es-MX' para México)
-    return d.toLocaleDateString('en-CA'); // Retorna YYYY-MM-DD
+    // Ajustado para retornar YYYY-MM-DD
+    return d.toLocaleDateString('en-CA'); 
 };
 
 exports.validarAsistente = async (req, res) => {
@@ -94,7 +106,6 @@ exports.validarAsistente = async (req, res) => {
         const yaAsistioHoy = asistente.asistencias.some(asist => asist.fecha === fechaHoy);
 
         if (yaAsistioHoy) {
-            // Buscamos a qué hora entró para darle info al Staff
             const registroPrevio = asistente.asistencias.find(asist => asist.fecha === fechaHoy);
             const hora = new Date(registroPrevio.horaExacta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
@@ -103,7 +114,7 @@ exports.validarAsistente = async (req, res) => {
             });
         }
 
-        // 3. Registrar nueva asistencia para el día correspondiente
+        // 3. Registrar nueva asistencia
         const nuevaAsistencia = {
             fecha: fechaHoy,
             horaExacta: new Date()
@@ -112,7 +123,7 @@ exports.validarAsistente = async (req, res) => {
         asistente.asistencias.push(nuevaAsistencia);
         await asistente.save();
 
-        // 4. Calcular cuántos han entrado HOY para el contador del Front
+        // 4. Calcular cuántos han entrado HOY
         const conteoHoy = await Asistente.countDocuments({ "asistencias.fecha": fechaHoy });
 
         res.status(200).json({ 
@@ -126,7 +137,6 @@ exports.validarAsistente = async (req, res) => {
     }
 };
 
-// Endpoint para el contador que se refresca en el Front
 exports.obtenerConteo = async (req, res) => {
     try {
         const fechaHoy = getFechaLocal();
