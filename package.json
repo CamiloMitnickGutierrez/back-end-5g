@@ -8,12 +8,13 @@
     "dev": "nodemon src/app.js"
   },
   "engines": {
-  "node": ">=20.0.0"
-},
+    "node": ">=20.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@azure/storage-blob": "^12.31.0",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
@@ -25,5 +26,4 @@
   "devDependencies": {
     "nodemon": "^3.1.11"
   }
-
 }
