@@ -20,11 +20,14 @@ connectDB();
 const allowedOrigins = [
   'https://www.registrate5g.tech',
   'https://registrate5g.tech',
-  'https://sea-lion-app-qbfid.ondigitalocean.app'
+  'https://sea-lion-app-qbfid.ondigitalocean.app',
+  'http://localhost:5173'
 ];
 
 app.use(cors({
-  origin: allowedOrigins
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
 
 app.use(morgan('dev'));
