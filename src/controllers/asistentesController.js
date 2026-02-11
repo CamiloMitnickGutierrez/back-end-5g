@@ -1,4 +1,4 @@
-const Asistente = require('../models/Asistentes'); 
+const Asistente = require('../models/Asistentes');
 const QRCode = require('qrcode');
 const { Resend } = require('resend');
 
@@ -8,12 +8,12 @@ exports.registrarAsistente = async (req, res) => {
     try {
         const nuevoAsistente = new Asistente(req.body);
         const qrGenerado = await QRCode.toDataURL(nuevoAsistente._id.toString());
-        
+
         nuevoAsistente.qrCode = qrGenerado;
         await nuevoAsistente.save();
 
-        res.status(201).json({ 
-            success: true, 
+        res.status(201).json({
+            success: true,
             qrUrl: qrGenerado,
             nombre: nuevoAsistente.nombre,
             email: nuevoAsistente.email
@@ -28,19 +28,18 @@ exports.enviarTicketEmail = async (req, res) => {
     const { email, nombre, qrUrl } = req.body;
 
     try {
-        //  Inicialización protegida: solo ocurre cuando se llama a la función
         if (!process.env.RESEND_API_KEY) {
             console.error(" ERROR: La variable RESEND_API_KEY no está definida en Azure.");
             return res.status(500).json({ success: false, message: "Error de configuración de correo en el servidor." });
         }
 
         const resend = new Resend(process.env.RESEND_API_KEY);
-        
-        // Limpiamos el base64 del QR
+
+        // Limpiamos el base64 del QR para el adjunto
         const base64Content = qrUrl.split(',')[1];
 
         const { data, error } = await resend.emails.send({
-            from: 'Evento Confirmado <onboarding@resend.dev>',
+            from: 'Evento 5G <asistencias@registrate5g.tech>',
             to: [email],
             subject: `¡Aquí tienes tu entrada, ${nombre}!`,
             attachments: [
@@ -77,12 +76,30 @@ exports.enviarTicketEmail = async (req, res) => {
         }
 
         res.status(200).json({ success: true, message: "Correo enviado correctamente" });
-        
+
     } catch (error) {
         console.error("Error interno en enviarTicketEmail:", error.message);
         res.status(500).json({ success: false, message: "Error interno al procesar el envío" });
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const getFechaLocal = () => {
     const d = new Date();
@@ -105,9 +122,9 @@ exports.validarAsistente = async (req, res) => {
         if (yaAsistioHoy) {
             const registroPrevio = asistente.asistencias.find(asist => asist.fecha === fechaHoy);
             const hora = new Date(registroPrevio.horaExacta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            return res.status(400).json({ 
-                message: `${asistente.nombre} ya ingresó hoy a las ${hora}.` 
+
+            return res.status(400).json({
+                message: `${asistente.nombre} ya ingresó hoy a las ${hora}.`
             });
         }
 
@@ -121,7 +138,7 @@ exports.validarAsistente = async (req, res) => {
 
         const conteoHoy = await Asistente.countDocuments({ "asistencias.fecha": fechaHoy });
 
-        res.status(200).json({ 
+        res.status(200).json({
             message: `¡Bienvenido/a ${asistente.nombre}! (Día: ${fechaHoy})`,
             total: conteoHoy
         });
