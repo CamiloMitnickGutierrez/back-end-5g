@@ -35,50 +35,45 @@ exports.enviarTicketEmail = async (req, res) => {
 
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        // 1. Limpiamos el base64 para el adjunto (quitamos el prefijo data:image/png;base64,)
+        // Limpiamos el base64
         const base64Data = qrUrl.replace(/^data:image\/\w+;base64,/, "");
+        
+        // ⭐ DEBUGGING: Verificar que el base64 esté limpio
+        console.log(" Base64 limpio (primeros 50 chars):", base64Data.substring(0, 50));
 
         const { data, error } = await resend.emails.send({
             from: 'Evento 5G <asistencias@registrate5g.tech>',
             to: [email],
             subject: `¡Aquí tienes tu entrada, ${nombre}!`,
-            // 2. Adjuntamos la imagen con un CID para que Outlook no la bloquee
             attachments: [
                 {
-                    filename: 'ticket-qr.png',
+                    filename: 'qr-ticket.png',  //  Sin guiones bajos
                     content: base64Data,
-                    cid: 'qr_ticket_cid', // ID único para referenciar en el HTML
+                    //  NO uses 'encoding' ni 'content_type' - Resend lo detecta automáticamente
                 },
             ],
             html: `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; padding: 40px 20px; text-align: center; color: #333;">
                     <div style="max-width: 500px; margin: auto;">
                         
-                        <h1 style="font-size: 31px; color: #1a1a1a; margin-bottom: 10px;">Hola , ${nombre}! ,Bienvenido(a) </h1>
-                        <h2 style="font-size: 25px; color: #1a1a1a; margin-bottom: 10px;">¡Aquí tienes tu entrada, para el evento 5G Que se realizara en la Iglesia Mision Cristiana Tiempos De Gloria</h2>
+                        <h1 style="font-size: 31px; color: #1a1a1a; margin-bottom: 10px;">Hola, ${nombre}! Bienvenido(a)</h1>
+                        <h2 style="font-size: 25px; color: #1a1a1a; margin-bottom: 10px;">¡Aquí tienes tu entrada para el evento 5G!</h2>
                         <p style="font-size: 20px; color: #666; margin-bottom: 30px;">Presenta este código QR cada día al ingresar al evento.</p>
 
                         <div style="background-color: #f9f9f9; padding: 25px; border-radius: 15px; display: inline-block; border: 1px solid #eeeeee;">
-                            <a href="${qrUrl}" target="_blank" style="text-decoration: none;">
-                                <img src="cid:qr_ticket_cid" 
-                                     alt="Código QR" 
-                                     width="220" 
-                                     height="220" 
-                                     style="display: block; border: none; cursor: zoom-in;" />
-                            </a>
-                            <p style="color: #007bff; font-size: 13px; margin-top: 15px; font-weight: bold; font-family: sans-serif;">
-                                Toca la imagen para ampliar
+                            <!--  El CID DEBE ser "cid:" + el filename exacto -->
+                            <img src="cid:qr-ticket.png" 
+                                 alt="Código QR" 
+                                 width="220" 
+                                 height="220" 
+                                 style="display: block; border: none; margin: 0 auto;" />
+                            <p style="color: #007bff; font-size: 13px; margin-top: 15px; font-weight: bold;">
+                                Tu código QR de acceso
                             </p>
                         </div>
 
-                        <div style="margin-top: 35px;">
-                            <a href="${qrUrl}" target="_blank" style="background-color: #007bff; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block;">
-                                Ver QR en pantalla completa
-                            </a>
-                        </div>
-
                         <p style="color: #999; font-size: 12px; margin-top: 40px;">
-                            Sugerencia: Guarda esta imagen en tu galería para un acceso más rápido.
+                            El código QR también está adjunto en este correo para que lo descargues.
                         </p>
                     </div>
                 </div>
@@ -86,19 +81,18 @@ exports.enviarTicketEmail = async (req, res) => {
         });
 
         if (error) {
-            console.error("Error detallado de Resend:", error);
+            console.error(" Error detallado de Resend:", JSON.stringify(error, null, 2));
             return res.status(400).json({ success: false, error });
         }
 
-        res.status(200).json({ success: true, message: "Correo enviado correctamente" });
+        console.log(" Correo enviado exitosamente:", data);
+        res.status(200).json({ success: true, message: "Correo enviado correctamente", data });
 
     } catch (error) {
-        console.error("Error interno en enviarTicketEmail:", error.message);
+        console.error(" Error interno en enviarTicketEmail:", error.message);
         res.status(500).json({ success: false, message: "Error interno al procesar el envío" });
     }
 };
-
-
 
 
 
