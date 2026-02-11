@@ -35,36 +35,51 @@ exports.enviarTicketEmail = async (req, res) => {
 
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        // Limpiamos el base64 del QR para el adjunto
-        const base64Content = qrUrl.split(',')[1];
+        // 1. Limpiamos el base64 para el adjunto (quitamos el prefijo data:image/png;base64,)
+        const base64Data = qrUrl.replace(/^data:image\/\w+;base64,/, "");
 
         const { data, error } = await resend.emails.send({
             from: 'Evento 5G <asistencias@registrate5g.tech>',
             to: [email],
             subject: `¡Aquí tienes tu entrada, ${nombre}!`,
+            // 2. Adjuntamos la imagen con un CID para que Outlook no la bloquee
             attachments: [
                 {
-                    filename: 'Ticket-QR.png',
-                    content: base64Content,
+                    filename: 'ticket-qr.png',
+                    content: base64Data,
+                    cid: 'qr_ticket_cid', // ID único para referenciar en el HTML
                 },
             ],
             html: `
-                <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-                    <div style="max-width: 400px; margin: auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                        <div style="background: #90caf9; padding: 20px; text-align: center;">
-                            <h2 style="margin: 0; color: #0a0a0a;">TICKET DE ACCESO</h2>
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ffffff; padding: 40px 20px; text-align: center; color: #333;">
+                    <div style="max-width: 500px; margin: auto;">
+                        
+                        <h1 style="font-size: 31px; color: #1a1a1a; margin-bottom: 10px;">Hola , ${nombre}! ,Bienvenido(a) </h1>
+                        <h2 style="font-size: 25px; color: #1a1a1a; margin-bottom: 10px;">¡Aquí tienes tu entrada, para el evento 5G Que se realizara en la Iglesia Mision Cristiana Tiempos De Gloria</h2>
+                        <p style="font-size: 20px; color: #666; margin-bottom: 30px;">Presenta este código QR cada día al ingresar al evento.</p>
+
+                        <div style="background-color: #f9f9f9; padding: 25px; border-radius: 15px; display: inline-block; border: 1px solid #eeeeee;">
+                            <a href="${qrUrl}" target="_blank" style="text-decoration: none;">
+                                <img src="cid:qr_ticket_cid" 
+                                     alt="Código QR" 
+                                     width="220" 
+                                     height="220" 
+                                     style="display: block; border: none; cursor: zoom-in;" />
+                            </a>
+                            <p style="color: #007bff; font-size: 13px; margin-top: 15px; font-weight: bold; font-family: sans-serif;">
+                                Toca la imagen para ampliar
+                            </p>
                         </div>
-                        <div style="padding: 30px; text-align: center;">
-                            <p style="font-size: 18px; color: #333;">Hola <strong>${nombre}</strong>,</p>
-                            <p style="color: #666;">Presenta este código en la entrada del evento (Días 1, 2 o 3).</p>
-                            
-                            <img src="${qrUrl}" alt="QR Code" style="width: 200px; height: 200px; margin: 20px 0; border: 5px solid #f0f0f0; border-radius: 10px;" />
-                            
-                            <p style="font-size: 12px; color: #999;">También hemos adjuntado el código como imagen a este correo.</p>
+
+                        <div style="margin-top: 35px;">
+                            <a href="${qrUrl}" target="_blank" style="background-color: #007bff; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-block;">
+                                Ver QR en pantalla completa
+                            </a>
                         </div>
-                        <div style="background: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #aaa;">
-                            © 2026 Evento Staff Control
-                        </div>
+
+                        <p style="color: #999; font-size: 12px; margin-top: 40px;">
+                            Sugerencia: Guarda esta imagen en tu galería para un acceso más rápido.
+                        </p>
                     </div>
                 </div>
             `,
