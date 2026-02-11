@@ -14,7 +14,20 @@ const app = express();
 connectDB();
 
 // 4. Middlewares (Configuraciones de comportamiento)
-app.use(cors());
+// 4. Middlewares (Configuraciones de comportamiento)
+
+// Definimos los orígenes permitidos explícitamente
+const allowedOrigins = [
+  'https://www.registrate5g.tech',
+  'https://registrate5g.tech',
+  'https://sea-lion-app-qbfid.ondigitalocean.app'
+];
+
+app.use(cors({
+  origin: allowedOrigins
+}));
+
+app.use(morgan('dev'));
 app.use(morgan('dev'));
 
 // Configuración de límites para peticiones grandes (necesario para imágenes/QR en Base64)
