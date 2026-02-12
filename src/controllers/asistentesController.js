@@ -163,9 +163,26 @@ export const enviarTicketEmail = async (req, res) => {
     }
 };
 
+/**
+ * Obtiene la fecha actual en la zona horaria de Colombia (UTC-5)
+ * Retorna en formato YYYY-MM-DD
+ */
 const getFechaLocal = () => {
-    const d = new Date();
-    return d.toLocaleDateString('en-CA'); // Retorna YYYY-MM-DD
+    // Crear fecha en zona horaria de Colombia (UTC-5)
+    const now = new Date();
+    const offsetColombia = -5 * 60; // Colombia es UTC-5 (en minutos)
+    const offsetActual = now.getTimezoneOffset(); // Offset del servidor en minutos
+    const diferencia = offsetActual - offsetColombia;
+    
+    // Ajustar la fecha a la zona horaria de Colombia
+    const fechaColombia = new Date(now.getTime() + diferencia * 60 * 1000);
+    
+    // Formatear como YYYY-MM-DD
+    const year = fechaColombia.getFullYear();
+    const month = String(fechaColombia.getMonth() + 1).padStart(2, '0');
+    const day = String(fechaColombia.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
 };
 
 export const validarAsistente = async (req, res) => {
@@ -183,7 +200,14 @@ export const validarAsistente = async (req, res) => {
 
         if (yaAsistioHoy) {
             const registroPrevio = asistente.asistencias.find(asist => asist.fecha === fechaHoy);
-            const hora = new Date(registroPrevio.horaExacta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Convertir hora a zona horaria de Colombia (UTC-5)
+            const horaExacta = new Date(registroPrevio.horaExacta);
+            const hora = horaExacta.toLocaleTimeString('es-CO', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Bogota'
+            });
 
             return res.status(400).json({
                 message: `${asistente.nombre} ya ingresó hoy a las ${hora}.`
