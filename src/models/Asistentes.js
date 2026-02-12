@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose';
 
 
 const AsistenteSchema = new mongoose.Schema({
@@ -72,4 +72,4 @@ const AsistenteSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Asistentes',AsistenteSchema)
+export default mongoose.model('Asistentes', AsistenteSchema);

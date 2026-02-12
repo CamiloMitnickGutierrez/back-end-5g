@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import * as asistentesController from '../controllers/asistentesController.js';
+
 const router = express.Router();
-const asistentesController = require('../controllers/asistentesController');
 
 // Ruta que se dispara al enviar el formulario
 router.post('/registrar', asistentesController.registrarAsistente);
@@ -14,4 +15,4 @@ router.put('/validar/:id', asistentesController.validarAsistente);
 // 4. Obtener el conteo de personas que han entrado HOY
 router.get('/conteo', asistentesController.obtenerConteo);
 
-module.exports = router;
+export default router;

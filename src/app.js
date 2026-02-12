@@ -1,21 +1,20 @@
-// 1. Configuración de variables de entorno
-const dotenv = require('dotenv');
-// Cargamos el .env si existe, pero no matamos la app si no está (en Azure no habrá archivo .env)
-dotenv.config();
 
-// 2. Importación de dependencias
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const connectDB = require('./config/database');
+import dotenv from 'dotenv';
+import router from './routes/router.js';
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import connectDB from './config/database.js';
+
+
+// Cargamos el .env si existe, (en Azure no habrá archivo .env)
+dotenv.config();
 
 // 3. Inicialización y conexión a Base de Datos
 const app = express();
 connectDB();
 
 // 4. Middlewares (Configuraciones de comportamiento)
-// 4. Middlewares (Configuraciones de comportamiento)
-
 // Definimos los orígenes permitidos explícitamente
 const allowedOrigins = [
   'https://www.registrate5g.tech',
@@ -31,14 +30,15 @@ app.use(cors({
 }));
 
 app.use(morgan('dev'));
-app.use(morgan('dev'));
+
 
 // Configuración de límites para peticiones grandes (necesario para imágenes/QR en Base64)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // 5. Rutas
-app.use('/api/asistentes', require('./routes/router'));
+
+app.use('/api/asistentes', router);
 
 // Ruta de prueba para verificar que el backend está vivo en Azure
 app.get('/', (req, res) => {

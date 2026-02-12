@@ -1,7 +1,7 @@
-const Asistente = require('../models/Asistentes');
-const QRCode = require('qrcode');
-const { Resend } = require('resend');
-const { BlobServiceClient } = require('@azure/storage-blob');
+import Asistente from '../models/Asistentes.js';
+import QRCode from 'qrcode';
+import { Resend } from 'resend';
+import { BlobServiceClient } from '@azure/storage-blob';
 
 //  NOTA: Se eliminó la instancia global de Resend para evitar el error "Missing API key" al iniciar el servidor en Azure.
 
@@ -56,7 +56,7 @@ async function subirQRaAzure(base64Data, email) {
     }
 }
 
-exports.registrarAsistente = async (req, res) => {
+export const registrarAsistente = async (req, res) => {
     try {
         const nuevoAsistente = new Asistente(req.body);
         const qrGenerado = await QRCode.toDataURL(nuevoAsistente._id.toString());
@@ -76,7 +76,7 @@ exports.registrarAsistente = async (req, res) => {
     }
 };
 
-exports.enviarTicketEmail = async (req, res) => {
+export const enviarTicketEmail = async (req, res) => {
     const { email, nombre, qrUrl } = req.body;
 
     try {
@@ -168,7 +168,7 @@ const getFechaLocal = () => {
     return d.toLocaleDateString('en-CA'); // Retorna YYYY-MM-DD
 };
 
-exports.validarAsistente = async (req, res) => {
+export const validarAsistente = async (req, res) => {
     const { id } = req.params;
     const fechaHoy = getFechaLocal();
 
@@ -211,7 +211,7 @@ exports.validarAsistente = async (req, res) => {
     }
 };
 
-exports.obtenerConteo = async (req, res) => {
+export const obtenerConteo = async (req, res) => {
     try {
         const fechaHoy = getFechaLocal();
         const total = await Asistente.countDocuments({ "asistencias.fecha": fechaHoy });
