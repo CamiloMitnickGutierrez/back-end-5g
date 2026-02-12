@@ -168,21 +168,12 @@ export const enviarTicketEmail = async (req, res) => {
  * Retorna en formato YYYY-MM-DD
  */
 const getFechaLocal = () => {
-    // Crear fecha en zona horaria de Colombia (UTC-5)
-    const now = new Date();
-    const offsetColombia = -5 * 60; // Colombia es UTC-5 (en minutos)
-    const offsetActual = now.getTimezoneOffset(); // Offset del servidor en minutos
-    const diferencia = offsetActual - offsetColombia;
+    // Esto siempre devolverá la fecha correcta en Colombia, sin importar dónde esté el servidor
+    const ahora = new Date();
+    const opciones = { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formateador = new Intl.DateTimeFormat('en-CA', opciones); // en-CA devuelve YYYY-MM-DD
     
-    // Ajustar la fecha a la zona horaria de Colombia
-    const fechaColombia = new Date(now.getTime() + diferencia * 60 * 1000);
-    
-    // Formatear como YYYY-MM-DD
-    const year = fechaColombia.getFullYear();
-    const month = String(fechaColombia.getMonth() + 1).padStart(2, '0');
-    const day = String(fechaColombia.getDate()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
+    return formateador.format(ahora); 
 };
 
 export const validarAsistente = async (req, res) => {
