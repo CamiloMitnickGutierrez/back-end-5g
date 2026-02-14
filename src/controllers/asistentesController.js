@@ -133,16 +133,14 @@ export const enviarTicketEmail = async (req, res) => {
 
                         <div style="background-color: #e7f3ff; padding: 20px; border-radius: 10px; margin: 30px 0; border-left: 4px solid #007bff;">
                             <p style="color: #333; font-size: 14px; margin: 0; line-height: 1.6;">
-                                <strong>💡 Importante:</strong><br>
-                                • Guarda este correo para acceder al evento<br>
+                                <strong>Importante:</strong><br>
+                                • Guarda este correo para acceder al evento los 3 Dias <br>
                                 • El código QR se mostrará en cualquier dispositivo<br>
                                 • Funciona sin conexión una vez cargado
                             </p>
                         </div>
 
-                        <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                            Si tienes problemas, contáctanos en asistencias@registrate5g.tech
-                        </p>
+                       
                     </div>
                 </body>
                 </html>

@@ -34,11 +34,6 @@ const AsistenteSchema = new mongoose.Schema({
         required:true,
         trim:true
     },
-    municipio:{
-        type:String,
-        required:true,
-        trim:true
-    },
     barrio:{
         type:String,
         required:true,
